@@ -25,6 +25,8 @@ export default class CreepUnit {
   }
 
   grab(src: EnergySource | null) {
+    if (!src) return false;
+
     const tryGet = (resp: ScreepsReturnCode) => {
       if (resp === ERR_NOT_IN_RANGE) {
         this.visualMove(src);

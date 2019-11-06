@@ -64,28 +64,18 @@ export default class Distributor extends CreepUnit {
 
     const droppedEnergy = this.energySources.droppedEnergy();
 
-    if (droppedEnergy) {
-      if (this.ref.pickup(droppedEnergy) === ERR_NOT_IN_RANGE) {
-        this.visualMove(droppedEnergy);
-      }
+    if (this.grab(droppedEnergy)) {
       return true;
     }
 
     const container = this.energySources.container();
 
-    if (container) {
-      if (this.ref.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-        this.visualMove(container);
-      }
-
+    if (this.grab(container)) {
       return true;
     }
 
     const source = this.energySources.source();
-    if (source) {
-      if (this.ref.harvest(source) === ERR_NOT_IN_RANGE) {
-        this.visualMove(source);
-      }
+    if (this.grab(source)) {
       return true;
     }
 
