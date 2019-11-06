@@ -51,6 +51,16 @@ export function isRole(creep: Creep, role: string) {
   return Boolean(creep.memory.role) && creep.memory.role === role;
 }
 
+export function findClosestStructure<T extends StructureConstant>(
+  pos: RoomPosition,
+  type: T,
+  condition?: (s: TypedStructure<T>) => boolean
+): TypedStructure<T> | null {
+  return pos.findClosestByPath<TypedStructure<T>>(FIND_MY_STRUCTURES, {
+    filter: s => s.structureType === type && (!condition || condition(s as TypedStructure<T>))
+  });
+}
+
 export const DISTRIBUTOR = "distributor";
 export const MINER = "miner";
 export const BUILDER = "builder";

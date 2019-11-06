@@ -1,4 +1,4 @@
-import { codeToString, noMiners, isRole, DISTRIBUTOR } from "utils";
+import { codeToString, noMiners, isRole, DISTRIBUTOR, findClosestStructure } from "utils";
 
 export default class CreepUnit {
   ref: Creep;
@@ -10,63 +10,62 @@ export default class CreepUnit {
   tick() {}
 
   getEnergy(): boolean {
-    if (this.energy > 0) return false;
-    const droppedEnergy = this.ref.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
-      filter: resource => resource.resourceType === RESOURCE_ENERGY && resource.amount >= this.ref.store.getCapacity()
-    });
+    if (this.energy > 0 || !this.ref.store.getCapacity()) return false;
 
-    // this.ref.pos.inRangeTo(droppedEnergy.pos, 30) &&
+    // const droppedEnergy = this.ref.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+    //   filter: resource => resource.resourceType === RESOURCE_ENERGY && resource.amount >= this.ref.store.getCapacity()
+    // });
 
-    if (this.isRole(DISTRIBUTOR) && droppedEnergy && (!this.isMaxEnergy() || !this.ref.store.getCapacity())) {
-      if (this.ref.pickup(droppedEnergy) === ERR_NOT_IN_RANGE) {
-        this.visualMove(droppedEnergy);
-      }
-      return true;
-    }
+    // if (this.isRole(DISTRIBUTOR) && droppedEnergy) {
+    //   if (this.ref.pickup(droppedEnergy) === ERR_NOT_IN_RANGE) {
+    //     this.visualMove(droppedEnergy);
+    //   }
+    //   return true;
+    // }
 
     // @ts-ignore
-    const container: StructureContainer | null = this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
-      filter: structure =>
-        structure.structureType === STRUCTURE_CONTAINER && structure.store.energy >= this.ref.store.getCapacity()
-    });
+    // const container: StructureContainer | null = this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
+    //   filter: structure =>
+    //     structure.structureType === STRUCTURE_CONTAINER && structure.store.energy >= this.ref.store.getCapacity()
+    // });
 
-    if ((!this.isMaxEnergy() || !this.ref.store.getCapacity()) && container) {
-      if (this.ref.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-        this.visualMove(container);
-      }
+    // if (container) {
+    //   if (this.ref.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+    //     this.visualMove(container);
+    //   }
 
-      return true;
-    }
+    //   return true;
+    // }
 
-    if (!this.isRole(DISTRIBUTOR)) {
-      const storage = this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
-        filter: structure =>
-          structure.structureType === STRUCTURE_STORAGE && structure.store.energy >= this.ref.store.getCapacity()
-      });
+    // if (!this.isRole(DISTRIBUTOR)) {
+    //   const storage = this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
+    //     filter: structure =>
+    //       structure.structureType === STRUCTURE_STORAGE && structure.store.energy >= this.ref.store.getCapacity()
+    //   });
 
-      if (storage) {
-        if (this.ref.withdraw(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          this.visualMove(storage);
-        }
+    //   if (storage) {
+    //     if (this.ref.withdraw(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+    //       this.visualMove(storage);
+    //     }
 
-        return true;
-      }
-    }
+    //     return true;
+    //   }
+    // }
 
-    if (droppedEnergy && (!this.isMaxEnergy() || !this.ref.store.getCapacity())) {
-      if (this.ref.pickup(droppedEnergy) === ERR_NOT_IN_RANGE) {
-        this.visualMove(droppedEnergy);
-      }
-      return true;
-    }
+    // if (droppedEnergy) {
+    //   if (this.ref.pickup(droppedEnergy) === ERR_NOT_IN_RANGE) {
+    //     this.visualMove(droppedEnergy);
+    //   }
+    //   return true;
+    // }
 
-    const source = this.getSource();
-    if ((!this.isMaxEnergy() || !this.ref.store.getCapacity()) && source) {
-      if (this.ref.harvest(source) === ERR_NOT_IN_RANGE) {
-        this.visualMove(source);
-      }
-      return true;
-    }
+    // const source = this.getSource();
+    // if (source) {
+    //   if (this.ref.harvest(source) === ERR_NOT_IN_RANGE) {
+    //     this.visualMove(source);
+    //   }
+    //   return true;
+    // }
 
     return false;
   }
@@ -107,5 +106,26 @@ export default class CreepUnit {
 
   isRole(role: string) {
     return isRole(this.ref, role);
+  }
+
+  findClosestStructure<T extends StructureConstant>(
+    type: T,
+    condition?: (s: TypedStructure<T>) => boolean
+  ): TypedStructure<T> | null {
+    return findClosestStructure(this.ref.pos, type, condition);
+  }
+
+  get energySources() {
+    return {
+      droppedEnergy: () =>
+        this.ref.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+          filter: resource =>
+            resource.resourceType === RESOURCE_ENERGY && resource.amount >= this.ref.store.getCapacity()
+        }),
+      container: () =>
+        this.findClosestStructure(STRUCTURE_CONTAINER, s => s.store.energy > this.ref.store.getCapacity()),
+      storage: () => this.findClosestStructure(STRUCTURE_STORAGE, s => s.store.energy > this.ref.store.getCapacity()),
+      source: this.getSource
+    };
   }
 }

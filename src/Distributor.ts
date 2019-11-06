@@ -38,28 +38,24 @@ export default class Distributor extends CreepUnit {
   }
 
   getTarget() {
-    const refill = this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
-      filter: structure =>
-        // @ts-ignore
-        STRUCTURES_TO_REFILL.includes(structure.structureType) && !isMaxEnergy(structure.store)
-    });
-
-    const structure =
-      refill ||
+    const refill = () =>
       this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
         filter: structure =>
-          structure.structureType === STRUCTURE_CONTAINER && structure.store.energy !== 2000 && noMiners(structure.pos)
+          // @ts-ignore
+          STRUCTURES_TO_REFILL.includes(structure.structureType) && !isMaxEnergy(structure.store)
       });
 
-    const creep = this.ref.pos.findClosestByPath(FIND_CREEPS, {
-      filter: creep =>
-        isRole(creep, BUILDER) && creep.store && !isMaxEnergy(creep.store) && creep.pos.inRangeTo(this.ref, 5)
-    });
+    const structure = () =>
+      this.findClosestStructure(STRUCTURE_CONTAINER, s => !isMaxEnergy(s.store) && noMiners(s.pos));
 
-    const storage = this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
-      filter: structure => structure.structureType === STRUCTURE_STORAGE
-    });
+    const creep = () =>
+      this.ref.pos.findClosestByPath(FIND_CREEPS, {
+        filter: creep =>
+          isRole(creep, BUILDER) && creep.store && !isMaxEnergy(creep.store) && creep.pos.inRangeTo(this.ref, 5)
+      });
 
-    return refill || structure || creep || storage;
+    const storage = () => this.findClosestStructure(STRUCTURE_STORAGE, storage => !isMaxEnergy(storage.store));
+
+    return refill() || structure() || creep() || storage();
   }
 }
