@@ -12,60 +12,40 @@ export default class CreepUnit {
   getEnergy(): boolean {
     if (this.energy > 0 || !this.ref.store.getCapacity()) return false;
 
-    // const droppedEnergy = this.ref.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
-    //   filter: resource => resource.resourceType === RESOURCE_ENERGY && resource.amount >= this.ref.store.getCapacity()
-    // });
+    const energySources: EnergySource[] = [];
 
-    // if (this.isRole(DISTRIBUTOR) && droppedEnergy) {
-    //   if (this.ref.pickup(droppedEnergy) === ERR_NOT_IN_RANGE) {
-    //     this.visualMove(droppedEnergy);
-    //   }
-    //   return true;
-    // }
+    for (const f in this.energySources) {
+      const source = this.energySources[f]();
+      if (!source) continue;
+      energySources.push();
+    }
+
+    const closest = this.ref.pos.findClosestByPath(energySources);
+    return Boolean(closest) && this.grab(closest);
+  }
+
+  grab(src: EnergySource | null) {
+    const tryGet = (resp: ScreepsReturnCode) => {
+      if (resp === ERR_NOT_IN_RANGE) {
+        this.visualMove(src);
+        return true;
+      } else if (resp === OK) {
+        return true;
+      }
+
+      return false;
+    };
 
     // @ts-ignore
-    // const container: StructureContainer | null = this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
-    //   filter: structure =>
-    //     structure.structureType === STRUCTURE_CONTAINER && structure.store.energy >= this.ref.store.getCapacity()
-    // });
-
-    // if (container) {
-    //   if (this.ref.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-    //     this.visualMove(container);
-    //   }
-
-    //   return true;
-    // }
-
-    // if (!this.isRole(DISTRIBUTOR)) {
-    //   const storage = this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
-    //     filter: structure =>
-    //       structure.structureType === STRUCTURE_STORAGE && structure.store.energy >= this.ref.store.getCapacity()
-    //   });
-
-    //   if (storage) {
-    //     if (this.ref.withdraw(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-    //       this.visualMove(storage);
-    //     }
-
-    //     return true;
-    //   }
-    // }
-
-    // if (droppedEnergy) {
-    //   if (this.ref.pickup(droppedEnergy) === ERR_NOT_IN_RANGE) {
-    //     this.visualMove(droppedEnergy);
-    //   }
-    //   return true;
-    // }
-
-    // const source = this.getSource();
-    // if (source) {
-    //   if (this.ref.harvest(source) === ERR_NOT_IN_RANGE) {
-    //     this.visualMove(source);
-    //   }
-    //   return true;
-    // }
+    if (tryGet(this.ref.pickup(src))) {
+      return true;
+      // @ts-ignore
+    } else if (tryGet(this.ref.withdraw(src))) {
+      return true;
+      // @ts-ignore
+    } else if (tryGet(this.ref.harvest(src))) {
+      return true;
+    }
 
     return false;
   }
@@ -115,13 +95,13 @@ export default class CreepUnit {
     return findClosestStructure(this.ref.pos, type, condition);
   }
 
-  get energySources() {
+  get energySources(): { [id: string]: () => EnergySource | null } {
     return {
       droppedEnergy: () =>
         this.ref.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
           filter: resource =>
             resource.resourceType === RESOURCE_ENERGY && resource.amount >= this.ref.store.getCapacity()
-        }),
+        }) as Resource<RESOURCE_ENERGY> | null,
       container: () =>
         this.findClosestStructure(STRUCTURE_CONTAINER, s => s.store.energy > this.ref.store.getCapacity()),
       storage: () => this.findClosestStructure(STRUCTURE_STORAGE, s => s.store.energy > this.ref.store.getCapacity()),

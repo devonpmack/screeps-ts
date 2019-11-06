@@ -58,4 +58,37 @@ export default class Distributor extends CreepUnit {
 
     return refill() || structure() || creep() || storage();
   }
+
+  getEnergy(): boolean {
+    if (this.energy > 0 || !this.ref.store.getCapacity()) return false;
+
+    const droppedEnergy = this.energySources.droppedEnergy();
+
+    if (droppedEnergy) {
+      if (this.ref.pickup(droppedEnergy) === ERR_NOT_IN_RANGE) {
+        this.visualMove(droppedEnergy);
+      }
+      return true;
+    }
+
+    const container = this.energySources.container();
+
+    if (container) {
+      if (this.ref.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+        this.visualMove(container);
+      }
+
+      return true;
+    }
+
+    const source = this.energySources.source();
+    if (source) {
+      if (this.ref.harvest(source) === ERR_NOT_IN_RANGE) {
+        this.visualMove(source);
+      }
+      return true;
+    }
+
+    return false;
+  }
 }

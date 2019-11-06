@@ -54,6 +54,8 @@ interface Memory {
   log: any;
 }
 
+type EnergySource = StructureContainer | StructureStorage | Resource<RESOURCE_ENERGY> | Source;
+
 // `global` extension samples
 declare namespace NodeJS {
   interface Global {
