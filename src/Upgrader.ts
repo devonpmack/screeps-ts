@@ -3,14 +3,15 @@ import { codeToString } from "utils";
 
 export default class Upgrader extends CreepUnit {
   tick() {
-    const result = this.upgradeController();
+    const result = this.ref.upgradeController(this.ref.room.controller!);
     if (result === OK) {
       // good
       this.say("Upgrading");
     } else if (this.getEnergy()) {
-      this.say("Energy->");
+      this.say("Energy🔜");
     } else if (result) {
       this.say(codeToString(result));
+      this.upgradeController();
     } else {
       this.say("No targets");
     }

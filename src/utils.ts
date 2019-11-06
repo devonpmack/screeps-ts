@@ -1,8 +1,8 @@
-export function isMaxEnergy(store: Store<"energy", false>) {
-  return Boolean(store) && store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+export function isMaxEnergy(store: Store<"energy", false> | Store<ResourceConstant, false>) {
+  return Boolean(store) && store.getFreeCapacity(RESOURCE_ENERGY) === 0;
 }
 
-export function codeToString(code: ScreepsReturnCode) {
+export function codeToString(code: ScreepsReturnCode | false) {
   switch (code) {
     case 0:
       return "OK";
@@ -37,4 +37,16 @@ export function codeToString(code: ScreepsReturnCode) {
     default:
       return "?";
   }
+}
+
+export function noMiners(pos: RoomPosition) {
+  return (
+    pos.findInRange(FIND_CREEPS, 2, {
+      filter: c => isRole(c, MINER)
+    }).length === 0
+  );
+}
+
+export function isRole(creep: Creep, role: string) {
+  return Boolean(creep.memory.role) && creep.memory.role === role;
 }
