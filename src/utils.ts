@@ -50,3 +50,8 @@ export function noMiners(pos: RoomPosition) {
 export function isRole(creep: Creep, role: string) {
   return Boolean(creep.memory.role) && creep.memory.role === role;
 }
+
+export const DISTRIBUTOR = "distributor";
+export const MINER = "miner";
+export const BUILDER = "builder";
+export const UPGRADER = "upgrader";

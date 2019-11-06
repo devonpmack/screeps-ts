@@ -1,5 +1,5 @@
 import CreepUnit from "./CreepUnit";
-import { isMaxEnergy, codeToString, noMiners, isRole } from "./utils";
+import { isMaxEnergy, codeToString, noMiners, isRole, BUILDER } from "./utils";
 
 const STRUCTURES_TO_REFILL = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER];
 

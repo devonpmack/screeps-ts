@@ -1,4 +1,4 @@
-import { codeToString, noMiners, isRole } from "utils";
+import { codeToString, noMiners, isRole, DISTRIBUTOR } from "utils";
 
 export default class CreepUnit {
   ref: Creep;

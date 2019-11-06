@@ -6,6 +6,7 @@ import tickSpawn from "Spawn";
 import Builder from "Builder";
 import Miner from "Miner";
 import Tower from "Tower";
+import { DISTRIBUTOR, UPGRADER, BUILDER, MINER } from "utils";
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
