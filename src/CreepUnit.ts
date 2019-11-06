@@ -38,6 +38,21 @@ export default class CreepUnit {
       return true;
     }
 
+    if (!this.isRole(DISTRIBUTOR)) {
+      const storage = this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
+        filter: structure =>
+          structure.structureType === STRUCTURE_STORAGE && structure.store.energy >= this.ref.store.getCapacity()
+      });
+
+      if (storage) {
+        if (this.ref.withdraw(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+          this.visualMove(storage);
+        }
+
+        return true;
+      }
+    }
+
     if (droppedEnergy && (!this.isMaxEnergy() || !this.ref.store.getCapacity())) {
       if (this.ref.pickup(droppedEnergy) === ERR_NOT_IN_RANGE) {
         this.visualMove(droppedEnergy);
