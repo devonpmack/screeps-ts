@@ -1,3 +1,5 @@
+const EXPIRES = 50;
+
 export function isMaxEnergy(store: Store<"energy", false> | Store<ResourceConstant, false>) {
   return Boolean(store) && store.getFreeCapacity(RESOURCE_ENERGY) === 0;
 }
@@ -56,9 +58,40 @@ export function findClosestStructure<T extends StructureConstant>(
   type: T,
   condition?: (s: TypedStructure<T>) => boolean
 ): TypedStructure<T> | null {
-  return pos.findClosestByPath<TypedStructure<T>>(FIND_MY_STRUCTURES, {
+  return pos.findClosestByPath<TypedStructure<T>>(FIND_STRUCTURES, {
     filter: s => s.structureType === type && (!condition || condition(s as TypedStructure<T>))
   });
+}
+
+export function reservedEnergy(id: string): number | undefined {
+  if (!Memory.reservedEnergy) {
+    Memory.reservedEnergy = {};
+  }
+
+  let current = Memory.reservedEnergy[id];
+  if ((current && current.expires < Game.time) || !current) {
+    Memory.reservedEnergy[id] = undefined;
+    return 0;
+  } else {
+    return current.amount;
+  }
+}
+
+export function reserveEnergy(id: string, amount: number) {
+  if (!Memory.reservedEnergy) {
+    Memory.reservedEnergy = {};
+  }
+
+  let current = Memory.reservedEnergy[id];
+  if (current && current.expires < Game.time) {
+    current = undefined;
+  }
+
+  if (current) {
+    Memory.reservedEnergy[id] = { amount: amount + current.amount, expires: Game.time + EXPIRES };
+  } else {
+    Memory.reservedEnergy[id] = { amount, expires: Game.time + EXPIRES };
+  }
 }
 
 export const DISTRIBUTOR = "distributor";

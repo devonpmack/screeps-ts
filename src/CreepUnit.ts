@@ -1,4 +1,4 @@
-import { codeToString, noMiners, isRole, DISTRIBUTOR, findClosestStructure } from "utils";
+import { codeToString, noMiners, isRole, DISTRIBUTOR, findClosestStructure, UPGRADER } from "utils";
 
 export default class CreepUnit {
   ref: Creep;
@@ -10,17 +10,18 @@ export default class CreepUnit {
   tick() {}
 
   getEnergy(): boolean {
-    if (this.energy > 0 || !this.ref.store.getCapacity()) return false;
+    if (this.energy > 0 || !this.ref.store.getCapacity() || !this.ref) return false;
 
-    const energySources: EnergySource[] = [];
+    const sources: EnergySource[] = [];
 
     for (const f in this.energySources) {
       const source = this.energySources[f]();
+
       if (!source) continue;
-      energySources.push();
+      sources.push(source);
     }
 
-    const closest = this.ref.pos.findClosestByPath(energySources);
+    const closest = this.ref.pos.findClosestByPath(sources);
     return Boolean(closest) && this.grab(closest);
   }
 
@@ -39,10 +40,10 @@ export default class CreepUnit {
     };
 
     // @ts-ignore
-    if (tryGet(this.ref.pickup(src))) {
+    if (tryGet(this.ref.withdraw(src, RESOURCE_ENERGY))) {
       return true;
       // @ts-ignore
-    } else if (tryGet(this.ref.withdraw(src))) {
+    } else if (tryGet(this.ref.pickup(src))) {
       return true;
       // @ts-ignore
     } else if (tryGet(this.ref.harvest(src))) {
@@ -53,9 +54,13 @@ export default class CreepUnit {
   }
 
   getSource(): Source | null {
-    if (this.memory.sourceId) {
+    if (this.memory && this.memory.sourceId) {
       return Game.getObjectById(this.memory.sourceId);
     } else {
+      if (!this.ref) {
+        // todo console.log("wtf");
+        return null;
+      }
       let sources = this.ref.room.find(FIND_SOURCES_ACTIVE, {
         filter: s => noMiners(s.pos)
       });

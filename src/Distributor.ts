@@ -9,6 +9,8 @@ export default class Distributor extends CreepUnit {
   tick() {
     this.target = this.getTarget();
 
+    // console.log(this.target);
+
     if (this.deliver() === OK) {
       this.say("Transfer");
     } else if (this.getEnergy()) {
@@ -37,15 +39,16 @@ export default class Distributor extends CreepUnit {
     return false;
   }
 
-  getTarget() {
-    const refill = () =>
-      this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
-        filter: structure =>
-          // @ts-ignore
-          STRUCTURES_TO_REFILL.includes(structure.structureType) && !isMaxEnergy(structure.store)
-      });
+  getPriorityRefill() {
+    return this.ref.pos.findClosestByPath(FIND_STRUCTURES, {
+      filter: structure =>
+        // @ts-ignore
+        STRUCTURES_TO_REFILL.includes(structure.structureType) && !isMaxEnergy(structure.store)
+    });
+  }
 
-    const structure = () =>
+  getTarget() {
+    const container = () =>
       this.findClosestStructure(STRUCTURE_CONTAINER, s => !isMaxEnergy(s.store) && noMiners(s.pos));
 
     const creep = () =>
@@ -56,7 +59,7 @@ export default class Distributor extends CreepUnit {
 
     const storage = () => this.findClosestStructure(STRUCTURE_STORAGE, storage => !isMaxEnergy(storage.store));
 
-    return refill() || structure() || creep() || storage();
+    return this.getPriorityRefill() || container() || creep() || storage();
   }
 
   getEnergy(): boolean {
@@ -69,8 +72,7 @@ export default class Distributor extends CreepUnit {
     }
 
     const container = this.energySources.container();
-
-    if (this.grab(container)) {
+    if (this.getPriorityRefill() && this.grab(container)) {
       return true;
     }
 

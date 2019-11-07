@@ -49,6 +49,7 @@ type TypedStructure<T extends StructureConstant> = T extends STRUCTURE_CONTAINER
   : Structure<T>;
 
 interface Memory {
+  reservedEnergy: { [id: string]: { expires: number; amount: number } | undefined };
   repairing: { [id: string]: string | undefined };
   uuid: number;
   log: any;
